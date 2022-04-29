@@ -23,7 +23,7 @@ pipeline{
         stage('Code quality') {
             steps {
     //    def   scannerHome = tool 'SonarScanner 4.0';
-                withSonarQubeEnv('sonarqube-9.4') {
+                withSonarQubeEnv('sonar') {
                     sh "mvn sonar:sonar"
                 }
             }
