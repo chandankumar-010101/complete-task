@@ -1,0 +1,49 @@
+pipeline{
+    agent any
+    environment {
+        PATH = "$PATH:/opt/apache-maven-3.8.5/bin"
+    }
+    stages{
+        stage('Checkout'){
+            steps{
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'github', url: 'https://github.com/chandankumar-010101/javaloginapp.git']]])
+             }
+          }
+        
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('test'){
+            steps {
+                sh 'mvn clean test'
+            }
+        }
+        stage('Code quality') {
+            steps {
+    //    def   scannerHome = tool 'SonarScanner 4.0';
+                withSonarQubeEnv('sonarqube-9.4') {
+                    sh "mvn sonar:sonar"
+                }
+            }
+        }
+        stage('Build image'){
+            steps {
+                sh 'docker build -t chandan010101/webapp . '
+            }
+        }
+        stage('Push image') {
+            steps {
+                withCredentials([string(credentialsId: 'hubpwd', variable: 'hub')]) {
+                 sh 'docker login -u chandan010101 -p ${hub}'
+                 
+                }
+                 sh 'docker push  chandan010101/webapp '
+            }
+        }
+    }
+       
+}
+     
+     
